@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+    var stompClient
+    var name="<span style='padding-left: 5px;'>user:"+new Date().getTime()+"</span>";
+    function init(){
+        var sock = new SockJS('http://127.0.0.1:8080/cloud');
+        stompClient = Stomp.over(sock);
+        var roomId=$("#roomId").val();
+        stompClient.connect({}, function () {
+            stompClient.subscribe("/chat/listener/"+roomId, function (response) {
+                var hue = 'rgb(' + (Math.floor((256 - 199) * Math.random()) + 200) + ','
+                    + (Math.floor((256 - 199) * Math.random()) + 200) + ','
+                    + (Math.floor((256 - 199) * Math.random()) + 200) + ')';
+                var panel = '<div style="color:' + hue + ';padding: 10px 10px;">' + response.body + '</div>';
+                $("#context").append(panel);
+            })
+        })
+    }
+    function command(command) {
+        var roomId=$("#roomId").val();
+        var mesage=name+"说:"+$("#message").val();
+        stompClient.send("/cloud/send/"+roomId, {},mesage);
+    }
+</script>
+<body>
+<div id="body">
+    <div>
+        roomID: <input type="text" id="roomId"/>
+        <input type="button" value="进入房间" onclick="init()">
+    </div>
+    <input type="text" id="message"/>
+    <input type="button" value="发送" onclick="command('create')"/>
+    <div id="context">
+
+    </div>
+</div>
+</body>
+</html>
